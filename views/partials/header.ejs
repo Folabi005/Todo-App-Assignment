@@ -1,7 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Todo App</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
+  <header class="site-header">
+    <div class="brand">
+      <a href="/">Todo App</a>
+    </div>
+    <% if (currentUser) { %>
+      <div class="user-banner">
+        <span>Signed in as <strong><%= currentUser %></strong></span>
+        <a href="/logout">Logout</a>
+      </div>
+    <% } %>
+  </header>

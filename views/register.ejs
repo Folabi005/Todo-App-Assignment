@@ -1,15 +1,19 @@
 <%- include("partials/header") %>
 
-<h1>Register</h1>
+<main class="auth-page">
+  <h1>Register</h1>
 
-<form method="POST" action="/register">
-  <input type="text" name="username" placeholder="Username" required>
+  <% if (flash) { %>
+    <div class="flash <%= flash.type %>"><%= flash.message %></div>
+  <% } %>
 
-  <input type="password" name="password" placeholder="Password" required>
+  <form method="POST" action="/register" class="auth-form">
+    <input type="text" name="username" placeholder="Username" required>
+    <input type="password" name="password" placeholder="Password" required>
+    <button>Register</button>
+  </form>
 
-  <button>Register</button>
-</form>
-
-<a href="/login">Login</a>
+  <p>Already have an account? <a href="/login">Login</a></p>
+</main>
 
 <%- include("partials/footer") %>

@@ -1,49 +1,48 @@
 <%- include("partials/header") %>
 
-<h1>Todo App</h1>
+<main>
+  <section class="task-header">
+    <div>
+      <h2>Your tasks</h2>
+      <p>Pending: <strong><%= pendingCount %></strong> • Completed: <strong><%= completedCount %></strong></p>
+      <p>Showing: <strong><%= filter === 'all' ? 'All' : filter.charAt(0).toUpperCase() + filter.slice(1) %></strong></p>
+    </div>
 
-<a href="/logout">Logout</a>
+    <form method="POST" action="/tasks/create" class="task-form">
+      <input type="text" name="title" placeholder="Enter task" required>
+      <button>Add Task</button>
+    </form>
+  </section>
 
-<form method="POST" action="/tasks/create">
-  <input type="text" name="title" placeholder="Enter task" required>
+  <nav class="task-filters">
+    <a href="/tasks" class="<%= filter === 'all' ? 'active' : '' %>">All</a>
+    <a href="/tasks?status=pending" class="<%= filter === 'pending' ? 'active' : '' %>">Pending</a>
+    <a href="/tasks?status=completed" class="<%= filter === 'completed' ? 'active' : '' %>">Completed</a>
+  </nav>
 
-  <button>Add Task</button>
-</form>
+  <% if (tasks.length === 0) { %>
+    <p class="empty-state">No tasks yet. Add your first task to get started.</p>
+  <% } else { %>
+    <ul class="task-list">
+      <% tasks.forEach(task => { %>
+        <li class="task-item <%= task.status %>">
+          <span><%= task.title %></span>
+          <small><%= task.status %></small>
 
-<br>
-
-<a href="/tasks">All</a>
-<a href="/tasks?status=pending">Pending</a>
-<a href="/tasks?status=completed">Completed</a>
-
-<ul>
-  <% tasks.forEach(task => { %>
-
-    <li>
-      <%= task.title %> - <%= task.status %>
-
-      <% if(task.status !== "completed") { %>
-
-        <form
-          action="/tasks/complete/<%= task._id %>"
-          method="POST"
-          style="display:inline;"
-        >
-          <button>Complete</button>
-        </form>
-
-      <% } %>
-
-      <form
-        action="/tasks/delete/<%= task._id %>"
-        method="POST"
-        style="display:inline;"
-      >
-        <button>Delete</button>
-      </form>
-    </li>
-
-  <% }) %>
-</ul>
+          <div class="task-actions">
+            <% if (task.status !== "completed") { %>
+              <form action="/tasks/complete/<%= task._id %>" method="POST">
+                <button type="submit">Complete</button>
+              </form>
+            <% } %>
+            <form action="/tasks/delete/<%= task._id %>" method="POST">
+              <button type="submit">Delete</button>
+            </form>
+          </div>
+        </li>
+      <% }) %>
+    </ul>
+  <% } %>
+</main>
 
 <%- include("partials/footer") %>

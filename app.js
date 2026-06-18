@@ -1,96 +1,63 @@
-<<<<<<< HEAD
 require("dotenv").config();
-
 const express = require("express");
-const mongoose = require("mongoose");
-const session = require("express-session");
-const MongoStore = require("connect-mongo");
-const morgan = require("morgan");
 const path = require("path");
+const session = require("express-session");
+const MongoStore = require("connect-mongo").default;
+const morgan = require("morgan");
 
+const logger = require("./logger");
 const authRoutes = require("./routes/authRoutes");
 const taskRoutes = require("./routes/taskRoutes");
 const errorMiddleware = require("./middleware/errorMiddleware");
+const AppError = require("./utils/AppError");
 
 const app = express();
 
-mongoose
-  .connect(process.env.MONGO_URL)
-  .then(() => console.log("MongoDB Connected"))
-  .catch((err) => console.log(err));
-
 app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
 app.use(express.static(path.join(__dirname, "public")));
 
-app.use(morgan("dev"));
+app.use(
+  morgan("combined", {
+    stream: {
+      write: (message) => logger.info(message.trim()),
+    },
+  })
+);
 
 app.use(
   session({
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET || "change_this_secret",
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
-      mongoUrl: process.env.MONGO_URL,
+      mongoUrl: process.env.MONGO_URI,
     }),
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24,
+      sameSite: "lax",
+    },
   })
 );
+
+app.use((req, res, next) => {
+  res.locals.currentUser = req.session.username || null;
+  res.locals.flash = req.session.flash || null;
+  delete req.session.flash;
+  next();
+});
 
 app.use("/", authRoutes);
 app.use("/tasks", taskRoutes);
 
+app.use((req, res, next) => {
+  next(new AppError("Endpoint not found", 404));
+});
+
 app.use(errorMiddleware);
 
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
 module.exports = app;
-=======
-require('dotenv').config();
-const express = require('express');
-const mongoose = require('mongoose');
-const session = require('express-session');
-const MongoStore = require('connect-mongo');
-const morgan = require('morgan');
 
-const app = express();
-
-// Middleware
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.set('view engine', 'ejs');
-
-// Logs
-app.use(morgan('dev'));
-
-// Session
-app.use(session({
-  secret: 'secretkey',
-  resave: false,
-  saveUninitialized: false,
-  store: MongoStore.create({ mongoUrl: process.env.MONGO_URI })
-}));
-
-// Routes
-app.use('/', require('./routes/auth'));
-app.use('/tasks', require('./routes/tasks'));
-
-// Global Error Handler
-app.use((err, req, res, next) => {
-  console.error(err.message);
-  res.status(500).send("Something went wrong!");
-});
-
-// DB Connect
-mongoose.connect(process.env.MONGO_URI)
-.then(() => {
-  console.log("MongoDB Connected");
-  app.listen(3000, () => console.log("Server running on port 3000"));
-});
->>>>>>> 91d6d8ea7d87c6455dcc03425ae61a5cf3cb18a3
