@@ -30,7 +30,7 @@ See `ER-DIAGRAM.md` for the relationship between users and tasks.
 
 ## Setup
 
-1. Copy `.env.example` or create a `.env` file with:
+1. Copy `.env.example` to `.env` and fill in the required values:
 
 ```text
 PORT=5000

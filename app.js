@@ -9,7 +9,6 @@ const logger = require("./logger");
 const authRoutes = require("./routes/authRoutes");
 const taskRoutes = require("./routes/taskRoutes");
 const errorMiddleware = require("./middleware/errorMiddleware");
-const AppError = require("./utils/AppError");
 
 const app = express();
 
@@ -28,20 +27,23 @@ app.use(
   })
 );
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "change_this_secret",
-    resave: false,
-    saveUninitialized: false,
-    store: MongoStore.create({
-      mongoUrl: process.env.MONGO_URI,
-    }),
-    cookie: {
-      maxAge: 1000 * 60 * 60 * 24,
-      sameSite: "lax",
-    },
-  })
-);
+const sessionConfig = {
+  secret: process.env.SESSION_SECRET || "change_this_secret",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24,
+    sameSite: "lax",
+  },
+};
+
+if (process.env.MONGO_URI) {
+  sessionConfig.store = MongoStore.create({
+    mongoUrl: process.env.MONGO_URI,
+  });
+}
+
+app.use(session(sessionConfig));
 
 app.use((req, res, next) => {
   res.locals.currentUser = req.session.username || null;
@@ -60,4 +62,8 @@ app.use((req, res, next) => {
 app.use(errorMiddleware);
 
 module.exports = app;
+
+if (require.main === module) {
+  require("./server");
+}
 
